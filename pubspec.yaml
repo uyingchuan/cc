@@ -1,0 +1,50 @@
+name: cc
+description: "A personal tool collection app."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^3.4.1
+
+  # Database
+  drift: ^2.34.2
+  drift_sqflite: ^2.0.1
+  sqflite: ^2.0.0
+
+  # Routing
+  go_router: ^17.3.0
+
+  # Code generation annotations
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.12.0
+
+  # Utilities
+  intl: ^0.20.3
+  path_provider: ^2.1.6
+  share_plus: ^10.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Code generation
+  build_runner: any
+  drift_dev: any
+  freezed: any
+  json_serializable: any
+
+dependency_overrides:
+  meta: ^1.18.3
+
+flutter:
+  uses-material-design: true
