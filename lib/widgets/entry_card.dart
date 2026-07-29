@@ -1,24 +1,48 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/date_utils.dart';
 import '../models/journal_entry.dart';
 import 'tag_chip.dart';
 
-class EntryCard extends StatelessWidget {
+class EntryCard extends StatefulWidget {
   final JournalEntry entry;
   final VoidCallback onTap;
 
   const EntryCard({super.key, required this.entry, required this.onTap});
 
   @override
+  State<EntryCard> createState() => _EntryCardState();
+}
+
+class _EntryCardState extends State<EntryCard> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final entry = widget.entry;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
+        onTap: widget.onTap,
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(
@@ -26,15 +50,12 @@ class EntryCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: Color(entry.mood.color),
-                      shape: BoxShape.circle,
-                    ),
+                  Icon(
+                    entry.mood.icon,
+                    size: 16,
+                    color: Color(entry.mood.color),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 4),
                   Text(
                     entry.mood.label,
                     style: theme.textTheme.labelMedium?.copyWith(

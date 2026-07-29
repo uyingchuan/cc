@@ -14,8 +14,9 @@ class MoodSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: Mood.values
           .map((mood) => _MoodButton(
                 mood: mood,
@@ -46,8 +47,8 @@ class _MoodButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 52,
-        height: 52,
+        width: 64,
+        height: 72,
         decoration: BoxDecoration(
           color: isSelected ? color.withAlpha(30) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
@@ -56,18 +57,11 @@ class _MoodButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Icon(mood.icon, size: 28, color: color),
+            const SizedBox(height: 4),
             Text(
               mood.label,
               style: TextStyle(fontSize: 11, color: color),
-            ),
-            const SizedBox(height: 2),
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
             ),
           ],
         ),

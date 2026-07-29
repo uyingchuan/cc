@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:drift_sqflite/drift_sqflite.dart';
+import 'package:drift_flutter/drift_flutter.dart';
 
 import '../models/mood.dart';
 import 'daos/journal_dao.dart';
@@ -58,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   static QueryExecutor _openConnection() {
-    return SqfliteQueryExecutor.inDatabaseFolder(path: 'cc_journal.db');
+    return driftDatabase(name: 'cc_journal');
   }
 
   @override

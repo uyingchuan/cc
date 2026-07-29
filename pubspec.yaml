@@ -17,8 +17,7 @@ dependencies:
 
   # Database
   drift: ^2.34.2
-  drift_sqflite: ^2.0.1
-  sqflite: ^2.0.0
+  drift_flutter: ^0.3.1
 
   # Routing
   go_router: ^17.3.0
@@ -30,7 +29,7 @@ dependencies:
   # Utilities
   intl: ^0.20.3
   path_provider: ^2.1.6
-  share_plus: ^10.0.0
+  share_plus: ^13.3.0
 
 dev_dependencies:
   flutter_test:

@@ -23,14 +23,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const JournalHomeScreen(),
         routes: [
           GoRoute(
-            path: 'new',
-            name: 'entry-new',
-            builder: (context, state) => const EntryFormScreen(),
-          ),
-          GoRoute(
             path: 'search',
             name: 'entry-search',
             builder: (context, state) => const SearchScreen(),
+          ),
+          GoRoute(
+            path: 'settings',
+            name: 'journal-settings',
+            builder: (context, state) => const SettingsScreen(),
           ),
           GoRoute(
             path: ':id',
@@ -51,11 +51,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
-      ),
-      GoRoute(
-        path: '/settings',
-        name: 'settings',
-        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

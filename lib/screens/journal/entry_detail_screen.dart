@@ -71,13 +71,24 @@ class EntryDetailScreen extends ConsumerWidget {
                         color: Color(entry.mood.color).withAlpha(25),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        entry.mood.label,
-                        style: TextStyle(
-                          color: Color(entry.mood.color),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            entry.mood.icon,
+                            size: 16,
+                            color: Color(entry.mood.color),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            entry.mood.label,
+                            style: TextStyle(
+                              color: Color(entry.mood.color),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

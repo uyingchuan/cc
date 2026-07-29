@@ -96,7 +96,7 @@ class ExportService {
     final file = File('${dir.path}/cc_export_$timestamp.json');
     await file.writeAsString(json);
     final xFile = XFile(file.path);
-    await Share.shareXFiles([xFile]);
+    await SharePlus.instance.share(ShareParams(files: [xFile]));
   }
 
   String _fmt(DateTime dt) {
