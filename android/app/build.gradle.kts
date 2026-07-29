@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cc"
+    namespace = "cn.levons.assistant"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
