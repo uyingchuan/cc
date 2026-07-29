@@ -7,7 +7,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CC')),
+      appBar: AppBar(title: const Text('小助手')),
       body: GridView.count(
         crossAxisCount: 3,
         padding: const EdgeInsets.all(16),

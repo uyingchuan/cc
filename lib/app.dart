@@ -12,7 +12,7 @@ class CCApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'CC',
+      title: '小助手',
       theme: AppTheme.light,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
