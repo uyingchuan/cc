@@ -30,7 +30,7 @@ class SettingsScreen extends ConsumerWidget {
           const ListTile(
             leading: Icon(Icons.info_outline),
             title: Text('随手记'),
-            subtitle: Text('v1.0.0'),
+            subtitle: Text('v1.1.0'),
           ),
         ],
       ),
