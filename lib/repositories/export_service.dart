@@ -15,8 +15,15 @@ class ExportService {
 
   ExportService(this._journalRepo, this._tagRepo);
 
-  Future<ExportPayload> buildPayload() async {
-    final entries = await _journalRepo.getAllEntries();
+  Future<ExportPayload> buildPayload({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final now = DateTime.now();
+    final start = startDate ?? now.subtract(const Duration(days: 7));
+    final end = endDate ?? now;
+
+    final entries = await _journalRepo.filterByDateRange(start, end);
     final tags = await _tagRepo.getAll();
 
     final moodCounts = <String, int>{};
@@ -59,21 +66,16 @@ class ExportService {
           dayCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
     }
 
-    final dateFrom =
-        entries.isNotEmpty ? entries.last.entryDate : DateTime.now();
-    final dateTo =
-        entries.isNotEmpty ? entries.first.entryDate : DateTime.now();
-
     return ExportPayload(
       version: 1,
-      appName: 'CC',
+      appName: '随手记',
       module: 'journal',
       exportedAt: _fmt(DateTime.now()),
       summary: ExportSummary(
         totalEntries: entries.length,
         dateRange: ExportDateRange(
-          from: DateFormat('yyyy-MM-dd').format(dateFrom),
-          to: DateFormat('yyyy-MM-dd').format(dateTo),
+          from: DateFormat('yyyy-MM-dd').format(start),
+          to: DateFormat('yyyy-MM-dd').format(end),
         ),
         moodDistribution: moodCounts,
         topTags: topTags,
@@ -88,8 +90,11 @@ class ExportService {
     );
   }
 
-  Future<void> exportToFile() async {
-    final payload = await buildPayload();
+  Future<void> exportToFile({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final payload = await buildPayload(startDate: startDate, endDate: endDate);
     final json = const JsonEncoder.withIndent('  ').convert(payload.toJson());
     final dir = await getApplicationDocumentsDirectory();
     final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
