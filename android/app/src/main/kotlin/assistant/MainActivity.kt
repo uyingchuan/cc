@@ -1,4 +1,4 @@
-package com.example.cc
+package assistant
 
 import io.flutter.embedding.android.FlutterActivity
 
