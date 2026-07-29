@@ -5,6 +5,8 @@ import '../screens/home/home_screen.dart';
 import '../screens/journal/entry_detail_screen.dart';
 import '../screens/journal/entry_form_screen.dart';
 import '../screens/journal/journal_home_screen.dart';
+import '../screens/asset/asset_form_screen.dart';
+import '../screens/asset/asset_home_screen.dart';
 import '../screens/journal/search_screen.dart';
 import '../screens/settings/settings_screen.dart';
 
@@ -16,6 +18,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/',
         name: 'home',
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/assets',
+        name: 'assets',
+        builder: (context, state) => const AssetHomeScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: 'asset-new',
+            builder: (context, state) => const AssetFormScreen(),
+          ),
+          GoRoute(
+            path: ':id/edit',
+            name: 'asset-edit',
+            builder: (context, state) {
+              final id = int.parse(state.pathParameters['id']!);
+              return AssetFormScreen(assetId: id);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/journal',

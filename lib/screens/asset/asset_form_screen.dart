@@ -1,0 +1,205 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../models/asset.dart';
+import '../../providers/asset_providers.dart';
+
+class AssetFormScreen extends ConsumerStatefulWidget {
+  final int? assetId;
+
+  const AssetFormScreen({super.key, this.assetId});
+
+  @override
+  ConsumerState<AssetFormScreen> createState() => _AssetFormScreenState();
+}
+
+class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
+  final _nameController = TextEditingController();
+  final _valueController = TextEditingController();
+  final _accountController = TextEditingController();
+  final _noteController = TextEditingController();
+  AssetType _type = AssetType.cash;
+  bool _isSaving = false;
+  bool _initialized = false;
+
+  bool get isEditing => widget.assetId != null;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _valueController.dispose();
+    _accountController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadAsset() async {
+    if (widget.assetId == null) return;
+    final asset = await ref.read(assetProvider(widget.assetId!).future);
+    if (asset == null) return;
+
+    _nameController.text = asset.name;
+    _valueController.text = asset.value.toString();
+    _accountController.text = asset.account;
+    _noteController.text = asset.note;
+    _type = asset.type;
+    _initialized = true;
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEditing) {
+      _loadAsset();
+    } else {
+      _initialized = true;
+    }
+  }
+
+  Future<void> _save() async {
+    final name = _nameController.text.trim();
+    final valueText = _valueController.text.trim();
+    if (name.isEmpty || valueText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请输入名称和金额')),
+      );
+      return;
+    }
+    final value = double.tryParse(valueText);
+    if (value == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请输入有效的金额')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final repo = ref.read(assetRepositoryProvider);
+      if (isEditing) {
+        await repo.update(
+          id: widget.assetId!,
+          name: name,
+          value: value,
+          type: _type,
+          account: _accountController.text.trim(),
+          note: _noteController.text.trim(),
+        );
+      } else {
+        await repo.create(
+          name: name,
+          value: value,
+          type: _type,
+          account: _accountController.text.trim(),
+          note: _noteController.text.trim(),
+        );
+      }
+      if (mounted) context.pop();
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(isEditing ? '编辑资产' : '添加资产'),
+        actions: [
+          TextButton(
+            onPressed: _isSaving ? null : _save,
+            child: _isSaving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('保存'),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: '资产名称',
+                hintText: '如：储蓄卡、支付宝、基金',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              autofocus: !isEditing,
+            ),
+            const SizedBox(height: 16),
+            // Type selector
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: AssetType.values.map((type) {
+                final isSelected = _type == type;
+                final color = Color(type.color);
+                return ChoiceChip(
+                  label: Text(type.label),
+                  selected: isSelected,
+                  selectedColor: color.withAlpha(40),
+                  labelStyle: TextStyle(
+                    color: isSelected ? color : null,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                  onSelected: (_) => setState(() => _type = type),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _accountController,
+              decoration: InputDecoration(
+                labelText: '账户（可选）',
+                hintText: '如：支付宝、微信、招商银行',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _valueController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: '金额',
+                prefixText: '¥ ',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _noteController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: '备注（可选）',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
