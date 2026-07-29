@@ -1,6 +1,6 @@
 # 小助手
 
-这是一个使用Flutter为自己设计的助手类App，包名 `assistant`，每个功能各自独立。
+这是一个使用Flutter为自己设计的助手类App，包名 `cn.levons.assistant`，每个功能各自独立。
 
 ## 技术栈
 
