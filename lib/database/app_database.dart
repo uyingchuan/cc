@@ -3,6 +3,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 
 import '../models/mood.dart';
 import 'daos/asset_dao.dart';
+import 'daos/bill_dao.dart';
 import 'daos/journal_dao.dart';
 import 'daos/tag_dao.dart';
 
@@ -61,9 +62,18 @@ class Assets extends Table {
   DateTimeColumn get updatedAt => dateTime()();
 }
 
+class Bills extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  RealColumn get amount => real()();
+  IntColumn get category => integer()();
+  TextColumn get note => text().withLength(min: 0, max: 500)();
+  DateTimeColumn get billDate => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
 @DriftDatabase(
-  tables: [JournalEntries, Tags, EntryTags, Assets],
-  daos: [JournalDao, TagDao, AssetDao],
+  tables: [JournalEntries, Tags, EntryTags, Assets, Bills],
+  daos: [JournalDao, TagDao, AssetDao, BillDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -73,7 +83,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -91,9 +101,11 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 4) {
           await m.addColumn(assets, assets.account);
-          // Fix NULL values from potential broken v3 migration
           await customStatement('UPDATE assets SET type = 5 WHERE type IS NULL');
           await customStatement("UPDATE assets SET account = '' WHERE account IS NULL");
+        }
+        if (from < 5) {
+          await m.createTable(bills);
         }
       },
     );

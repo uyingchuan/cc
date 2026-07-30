@@ -26,6 +26,12 @@ class HomeScreen extends StatelessWidget {
             color: const Color(0xFF10B981),
             onTap: () => context.push('/assets'),
           ),
+          _FeatureCard(
+            icon: Icons.receipt_long,
+            label: '记账',
+            color: const Color(0xFFF59E0B),
+            onTap: () => context.push('/bills'),
+          ),
         ],
       ),
     );

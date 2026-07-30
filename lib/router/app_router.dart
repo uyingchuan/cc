@@ -7,6 +7,8 @@ import '../screens/journal/entry_form_screen.dart';
 import '../screens/journal/journal_home_screen.dart';
 import '../screens/asset/asset_form_screen.dart';
 import '../screens/asset/asset_home_screen.dart';
+import '../screens/bill/bill_form_screen.dart';
+import '../screens/bill/bill_home_screen.dart';
 import '../screens/journal/search_screen.dart';
 import '../screens/settings/settings_screen.dart';
 
@@ -35,6 +37,26 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final id = int.parse(state.pathParameters['id']!);
               return AssetFormScreen(assetId: id);
+            },
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/bills',
+        name: 'bills',
+        builder: (context, state) => const BillHomeScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: 'bill-new',
+            builder: (context, state) => const BillFormScreen(),
+          ),
+          GoRoute(
+            path: ':id/edit',
+            name: 'bill-edit',
+            builder: (context, state) {
+              final id = int.parse(state.pathParameters['id']!);
+              return BillFormScreen(billId: id);
             },
           ),
         ],
