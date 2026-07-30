@@ -6,14 +6,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/export_payload.dart';
+import 'asset_repository.dart';
 import 'journal_repository.dart';
 import 'tag_repository.dart';
 
 class ExportService {
   final JournalRepository _journalRepo;
   final TagRepository _tagRepo;
+  final AssetRepository? _assetRepo;
 
-  ExportService(this._journalRepo, this._tagRepo);
+  ExportService(this._journalRepo, this._tagRepo, [this._assetRepo]);
 
   Future<ExportPayload> buildPayload({
     DateTime? startDate,
@@ -99,6 +101,62 @@ class ExportService {
     final dir = await getApplicationDocumentsDirectory();
     final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     final file = File('${dir.path}/cc_export_$timestamp.json');
+    await file.writeAsString(json);
+    final xFile = XFile(file.path);
+    await SharePlus.instance.share(ShareParams(files: [xFile]));
+  }
+
+  Future<void> exportAssets() async {
+    if (_assetRepo == null) return;
+    final assets = await _assetRepo.getAll();
+
+    final totalValue = assets.fold<double>(0, (s, a) => s + a.value);
+    final totalPrincipal = assets.fold<double>(0, (s, a) => s + a.principal);
+    final totalProfit = assets.fold<double>(0, (s, a) => s + a.profit);
+    final typeDistribution = <String, double>{};
+    final accountDistribution = <String, double>{};
+    for (final a in assets) {
+      typeDistribution[a.type.label] =
+          (typeDistribution[a.type.label] ?? 0) + a.value;
+      if (a.account.isNotEmpty) {
+        accountDistribution[a.account] =
+            (accountDistribution[a.account] ?? 0) + a.value;
+      }
+    }
+
+    final list = assets.map((a) => {
+          'id': a.id,
+          'name': a.name,
+          'value': a.value,
+          'principal': a.principal,
+          'profit': a.profit,
+          'profitRate': a.profitRate,
+          'type': a.type.label,
+          'account': a.account,
+          'note': a.note,
+          'updatedAt': _fmt(a.updatedAt),
+        }).toList();
+
+    final payload = {
+      'appName': '小助手',
+      'module': 'assets',
+      'exportedAt': _fmt(DateTime.now()),
+      'summary': {
+        'totalValue': totalValue,
+        'totalPrincipal': totalPrincipal,
+        'totalProfit': totalProfit,
+        'profitRate':
+            totalPrincipal > 0 ? totalProfit / totalPrincipal * 100 : 0,
+        'typeDistribution': typeDistribution,
+        'accountDistribution': accountDistribution,
+      },
+      'assets': list,
+    };
+
+    final json = const JsonEncoder.withIndent('  ').convert(payload);
+    final dir = await getApplicationDocumentsDirectory();
+    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    final file = File('${dir.path}/assets_export_$timestamp.json');
     await file.writeAsString(json);
     final xFile = XFile(file.path);
     await SharePlus.instance.share(ShareParams(files: [xFile]));

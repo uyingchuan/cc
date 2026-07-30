@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 
 import '../../models/asset.dart';
 import '../../providers/asset_providers.dart';
+import '../../providers/journal_providers.dart';
+import '../../providers/tag_providers.dart';
+import '../../repositories/export_service.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_state.dart';
 
@@ -17,7 +20,36 @@ class AssetHomeScreen extends ConsumerWidget {
     final assetsAsync = ref.watch(allAssetsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('资产')),
+      appBar: AppBar(
+        title: const Text('资产'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: '导出资产数据',
+            onPressed: () async {
+              try {
+                final service = ExportService(
+                  ref.read(journalRepositoryProvider),
+                  ref.read(tagRepositoryProvider),
+                  ref.read(assetRepositoryProvider),
+                );
+                await service.exportAssets();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('导出成功')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('导出失败: $e')),
+                  );
+                }
+              }
+            },
+          ),
+        ],
+      ),
       body: assetsAsync.when(
         data: (assets) {
           if (assets.isEmpty) {
@@ -30,7 +62,7 @@ class AssetHomeScreen extends ConsumerWidget {
 
           final totalValue = assets.fold<double>(0, (sum, a) => sum + a.value);
           final totalPrincipal = assets.fold<double>(0, (sum, a) => sum + a.principal);
-          final totalProfit = totalValue - totalPrincipal;
+          final totalProfit = assets.fold<double>(0, (sum, a) => sum + a.profit);
           final totalRate = totalPrincipal > 0 ? totalProfit / totalPrincipal * 100 : 0.0;
 
           return ListView(
@@ -141,9 +173,13 @@ class AssetHomeScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  ...assets
-                      .where((a) => a.type == type)
-                      .map((asset) => Card(
+                  ...(() {
+                        final list = assets
+                            .where((a) => a.type == type)
+                            .toList()
+                          ..sort((a, b) => b.value.compareTo(a.value));
+                        return list;
+                      })().map((asset) => Card(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 3),
                             child: ListTile(

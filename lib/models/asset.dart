@@ -3,6 +3,7 @@ enum AssetType {
   fixedIncome('固收', 0xFF3B82F6),
   equity('权益', 0xFF8B5CF6),
   commodity('商品', 0xFFF59E0B),
+  loan('外借', 0xFF06B6D4),
   other('其他', 0xFF9E9E9E);
 
   const AssetType(this.label, this.color);
@@ -35,8 +36,8 @@ class Asset {
     required this.updatedAt,
   });
 
-  double get profit => value - principal;
-  double get profitRate => principal > 0 ? profit / principal * 100 : 0;
+  double get profit => principal > 0 ? value - principal : 0;
+  double get profitRate => principal > 0 ? (value - principal) / principal * 100 : 0;
 
   Asset copyWith({
     int? id,
@@ -83,8 +84,8 @@ class SnapshotItem {
     required this.date,
   });
 
-  double get profit => totalValue - totalPrincipal;
-  double get profitRate => totalPrincipal > 0 ? profit / totalPrincipal * 100 : 0;
+  double get profit => totalPrincipal > 0 ? totalValue - totalPrincipal : 0;
+  double get profitRate => totalPrincipal > 0 ? (totalValue - totalPrincipal) / totalPrincipal * 100 : 0;
 }
 
 class HistoryItem {

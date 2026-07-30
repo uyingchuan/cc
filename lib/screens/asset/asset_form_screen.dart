@@ -157,25 +157,37 @@ class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
               autofocus: !isEditing,
             ),
             const SizedBox(height: 16),
-            // Type selector
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: AssetType.values.map((type) {
-                final isSelected = _type == type;
-                final color = Color(type.color);
-                return ChoiceChip(
-                  label: Text(type.label),
-                  selected: isSelected,
-                  selectedColor: color.withAlpha(40),
-                  labelStyle: TextStyle(
-                    color: isSelected ? color : null,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.normal,
+            DropdownButtonFormField<AssetType>(
+              // ignore: deprecated_member_use
+              value: _type,
+              decoration: InputDecoration(
+                labelText: '资产类型',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              items: AssetType.values.map((type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Color(type.color),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(type.label),
+                    ],
                   ),
-                  onSelected: (_) => setState(() => _type = type),
                 );
               }).toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _type = v);
+              },
             ),
             const SizedBox(height: 16),
             TextField(
