@@ -4,7 +4,7 @@ import '../app_database.dart';
 
 part 'asset_dao.g.dart';
 
-@DriftAccessor(tables: [Assets, AssetHistories])
+@DriftAccessor(tables: [Assets, AssetHistories, TotalSnapshots])
 class AssetDao extends DatabaseAccessor<AppDatabase> with _$AssetDaoMixin {
   AssetDao(super.db);
 
@@ -50,7 +50,32 @@ class AssetDao extends DatabaseAccessor<AppDatabase> with _$AssetDaoMixin {
   Future<List<AssetHistory>> getHistory(int assetId) {
     return (select(assetHistories)
           ..where((e) => e.assetId.equals(assetId))
-          ..orderBy([(e) => OrderingTerm(expression: e.date, mode: OrderingMode.asc)]))
+          ..orderBy([(e) => OrderingTerm(expression: e.date, mode: OrderingMode.desc)]))
         .get();
+  }
+
+  Future<void> upsertTotalSnapshot(double totalValue, double totalPrincipal) {
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    return customStatement(
+      'INSERT OR REPLACE INTO total_snapshots (total_value, total_principal, date) '
+      'VALUES (?, ?, ?)',
+      [totalValue, totalPrincipal, today.millisecondsSinceEpoch],
+    );
+  }
+
+  Future<void> deleteHistory(int assetId, DateTime date) {
+    return (delete(assetHistories)
+          ..where((e) => e.assetId.equals(assetId) & e.date.equals(date)))
+        .go();
+  }
+
+  Future<List<TotalSnapshot>> getAllSnapshots() {
+    return (select(totalSnapshots)
+          ..orderBy([(e) => OrderingTerm(expression: e.date, mode: OrderingMode.desc)]))
+        .get();
+  }
+
+  Future<void> deleteSnapshot(DateTime date) {
+    return (delete(totalSnapshots)..where((e) => e.date.equals(date))).go();
   }
 }

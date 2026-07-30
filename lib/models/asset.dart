@@ -71,3 +71,30 @@ class Asset {
         'updatedAt': updatedAt.toIso8601String(),
       };
 }
+
+class SnapshotItem {
+  final double totalValue;
+  final double totalPrincipal;
+  final DateTime date;
+
+  const SnapshotItem({
+    required this.totalValue,
+    required this.totalPrincipal,
+    required this.date,
+  });
+
+  double get profit => totalValue - totalPrincipal;
+  double get profitRate => totalPrincipal > 0 ? profit / totalPrincipal * 100 : 0;
+}
+
+class HistoryItem {
+  final double value;
+  final double principal;
+  final DateTime date;
+
+  const HistoryItem({
+    required this.value,
+    required this.principal,
+    required this.date,
+  });
+}

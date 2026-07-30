@@ -6,6 +6,7 @@ part of 'asset_dao.dart';
 mixin _$AssetDaoMixin on DatabaseAccessor<AppDatabase> {
   $AssetsTable get assets => attachedDatabase.assets;
   $AssetHistoriesTable get assetHistories => attachedDatabase.assetHistories;
+  $TotalSnapshotsTable get totalSnapshots => attachedDatabase.totalSnapshots;
   AssetDaoManager get managers => AssetDaoManager(this);
 }
 
@@ -18,5 +19,10 @@ class AssetDaoManager {
       $$AssetHistoriesTableTableManager(
         _db.attachedDatabase,
         _db.assetHistories,
+      );
+  $$TotalSnapshotsTableTableManager get totalSnapshots =>
+      $$TotalSnapshotsTableTableManager(
+        _db.attachedDatabase,
+        _db.totalSnapshots,
       );
 }

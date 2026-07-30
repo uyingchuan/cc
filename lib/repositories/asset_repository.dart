@@ -72,6 +72,37 @@ class AssetRepository {
     await _db.assetDao.upsertHistory(id, value, principal);
   }
 
+  Future<void> takeSnapshot() async {
+    final assets = await getAll();
+    final totalValue = assets.fold<double>(0, (s, a) => s + a.value);
+    final totalPrincipal = assets.fold<double>(0, (s, a) => s + a.principal);
+    await _db.assetDao.upsertTotalSnapshot(totalValue, totalPrincipal);
+  }
+
+  Future<List<model.SnapshotItem>> getSnapshots() async {
+    final data = await _db.assetDao.getAllSnapshots();
+    return data.map((s) => model.SnapshotItem(
+          totalValue: s.totalValue,
+          totalPrincipal: s.totalPrincipal,
+          date: s.date,
+        )).toList();
+  }
+
+  Future<List<model.HistoryItem>> getAssetHistory(int assetId) async {
+    final data = await _db.assetDao.getHistory(assetId);
+    return data.map((h) => model.HistoryItem(
+          value: h.value,
+          principal: h.principal,
+          date: h.date,
+        )).toList();
+  }
+
+  Future<void> deleteHistory(int assetId, DateTime date) =>
+      _db.assetDao.deleteHistory(assetId, date);
+
+  Future<void> deleteSnapshot(DateTime date) =>
+      _db.assetDao.deleteSnapshot(date);
+
   Future<void> delete(int id) => _db.assetDao.deleteAsset(id);
 
   model.Asset _toModel(db.Asset data) {

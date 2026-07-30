@@ -76,6 +76,35 @@ class AssetHomeScreen extends ConsumerWidget {
                             suffix: '%'),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () async {
+                            await ref.read(assetRepositoryProvider).takeSnapshot();
+                            ref.invalidate(snapshotsProvider);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('快照已保存')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.camera_alt_outlined, size: 16,
+                              color: Colors.white70),
+                          label: const Text('记录快照',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 13)),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed: () => context.push('/assets/snapshots'),
+                          child: const Text('快照历史',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 13)),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -132,6 +161,15 @@ class AssetHomeScreen extends ConsumerWidget {
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
+                              leading: IconButton(
+                                icon: const Icon(Icons.timeline, size: 20),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                    minWidth: 32, minHeight: 32),
+                                onPressed: () => context.push(
+                                  '/assets/${asset.id}/history?name=${Uri.encodeComponent(asset.name)}',
+                                ),
+                              ),
                               trailing: asset.principal > 0
                                   ? Text(
                                       '${asset.profitRate.toStringAsFixed(1)}%',
@@ -144,8 +182,8 @@ class AssetHomeScreen extends ConsumerWidget {
                                       ),
                                     )
                                   : null,
-                              onTap: () =>
-                                  context.push('/assets/${asset.id}/edit'),
+                              onTap: () => context.push('/assets/${asset.id}/edit',
+                                  extra: asset),
                               onLongPress: () async {
                                 final confirmed = await showConfirmDialog(
                                   context,

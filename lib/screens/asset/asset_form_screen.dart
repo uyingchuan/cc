@@ -7,8 +7,9 @@ import '../../providers/asset_providers.dart';
 
 class AssetFormScreen extends ConsumerStatefulWidget {
   final int? assetId;
+  final Asset? asset;
 
-  const AssetFormScreen({super.key, this.assetId});
+  const AssetFormScreen({super.key, this.assetId, this.asset});
 
   @override
   ConsumerState<AssetFormScreen> createState() => _AssetFormScreenState();
@@ -36,19 +37,26 @@ class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
     super.dispose();
   }
 
+  void _fillFromAsset(Asset a) {
+    _nameController.text = a.name;
+    _valueController.text = a.value.toString();
+    _principalController.text = a.principal > 0 ? a.principal.toString() : '';
+    _accountController.text = a.account;
+    _noteController.text = a.note;
+    _type = a.type;
+    _initialized = true;
+  }
+
   Future<void> _loadAsset() async {
+    if (widget.asset != null) {
+      _fillFromAsset(widget.asset!);
+      return;
+    }
     if (widget.assetId == null) return;
+    ref.invalidate(assetProvider(widget.assetId!));
     final asset = await ref.read(assetProvider(widget.assetId!).future);
     if (asset == null) return;
-
-    _nameController.text = asset.name;
-    _valueController.text = asset.value.toString();
-    _principalController.text = asset.principal > 0 ? asset.principal.toString() : '';
-    _accountController.text = asset.account;
-    _noteController.text = asset.note;
-    _type = asset.type;
-    _initialized = true;
-    setState(() {});
+    _fillFromAsset(asset);
   }
 
   @override
@@ -126,8 +134,7 @@ class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
             onPressed: _isSaving ? null : _save,
             child: _isSaving
                 ? const SizedBox(
-                    width: 20,
-                    height: 20,
+                    width: 20, height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Text('保存'),

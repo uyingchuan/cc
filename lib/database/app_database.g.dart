@@ -1456,19 +1456,6 @@ class $AssetHistoriesTable extends AssetHistories
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $AssetHistoriesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
   static const VerificationMeta _assetIdMeta = const VerificationMeta(
     'assetId',
   );
@@ -1513,7 +1500,7 @@ class $AssetHistoriesTable extends AssetHistories
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, assetId, value, principal, date];
+  List<GeneratedColumn> get $columns => [assetId, value, principal, date];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1526,11 +1513,6 @@ class $AssetHistoriesTable extends AssetHistories
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
     if (data.containsKey('asset_id')) {
       context.handle(
         _assetIdMeta,
@@ -1572,10 +1554,6 @@ class $AssetHistoriesTable extends AssetHistories
   AssetHistory map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AssetHistory(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
       assetId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}asset_id'],
@@ -1602,13 +1580,11 @@ class $AssetHistoriesTable extends AssetHistories
 }
 
 class AssetHistory extends DataClass implements Insertable<AssetHistory> {
-  final int id;
   final int assetId;
   final double value;
   final double principal;
   final DateTime date;
   const AssetHistory({
-    required this.id,
     required this.assetId,
     required this.value,
     required this.principal,
@@ -1617,7 +1593,6 @@ class AssetHistory extends DataClass implements Insertable<AssetHistory> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
     map['asset_id'] = Variable<int>(assetId);
     map['value'] = Variable<double>(value);
     map['principal'] = Variable<double>(principal);
@@ -1627,7 +1602,6 @@ class AssetHistory extends DataClass implements Insertable<AssetHistory> {
 
   AssetHistoriesCompanion toCompanion(bool nullToAbsent) {
     return AssetHistoriesCompanion(
-      id: Value(id),
       assetId: Value(assetId),
       value: Value(value),
       principal: Value(principal),
@@ -1641,7 +1615,6 @@ class AssetHistory extends DataClass implements Insertable<AssetHistory> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AssetHistory(
-      id: serializer.fromJson<int>(json['id']),
       assetId: serializer.fromJson<int>(json['assetId']),
       value: serializer.fromJson<double>(json['value']),
       principal: serializer.fromJson<double>(json['principal']),
@@ -1652,7 +1625,6 @@ class AssetHistory extends DataClass implements Insertable<AssetHistory> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
       'assetId': serializer.toJson<int>(assetId),
       'value': serializer.toJson<double>(value),
       'principal': serializer.toJson<double>(principal),
@@ -1661,13 +1633,11 @@ class AssetHistory extends DataClass implements Insertable<AssetHistory> {
   }
 
   AssetHistory copyWith({
-    int? id,
     int? assetId,
     double? value,
     double? principal,
     DateTime? date,
   }) => AssetHistory(
-    id: id ?? this.id,
     assetId: assetId ?? this.assetId,
     value: value ?? this.value,
     principal: principal ?? this.principal,
@@ -1675,7 +1645,6 @@ class AssetHistory extends DataClass implements Insertable<AssetHistory> {
   );
   AssetHistory copyWithCompanion(AssetHistoriesCompanion data) {
     return AssetHistory(
-      id: data.id.present ? data.id.value : this.id,
       assetId: data.assetId.present ? data.assetId.value : this.assetId,
       value: data.value.present ? data.value.value : this.value,
       principal: data.principal.present ? data.principal.value : this.principal,
@@ -1686,7 +1655,6 @@ class AssetHistory extends DataClass implements Insertable<AssetHistory> {
   @override
   String toString() {
     return (StringBuffer('AssetHistory(')
-          ..write('id: $id, ')
           ..write('assetId: $assetId, ')
           ..write('value: $value, ')
           ..write('principal: $principal, ')
@@ -1696,12 +1664,11 @@ class AssetHistory extends DataClass implements Insertable<AssetHistory> {
   }
 
   @override
-  int get hashCode => Object.hash(id, assetId, value, principal, date);
+  int get hashCode => Object.hash(assetId, value, principal, date);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is AssetHistory &&
-          other.id == this.id &&
           other.assetId == this.assetId &&
           other.value == this.value &&
           other.principal == this.principal &&
@@ -1709,14 +1676,12 @@ class AssetHistory extends DataClass implements Insertable<AssetHistory> {
 }
 
 class AssetHistoriesCompanion extends UpdateCompanion<AssetHistory> {
-  final Value<int> id;
   final Value<int> assetId;
   final Value<double> value;
   final Value<double> principal;
   final Value<DateTime> date;
   final Value<int> rowid;
   const AssetHistoriesCompanion({
-    this.id = const Value.absent(),
     this.assetId = const Value.absent(),
     this.value = const Value.absent(),
     this.principal = const Value.absent(),
@@ -1724,19 +1689,16 @@ class AssetHistoriesCompanion extends UpdateCompanion<AssetHistory> {
     this.rowid = const Value.absent(),
   });
   AssetHistoriesCompanion.insert({
-    required int id,
     required int assetId,
     required double value,
     required double principal,
     required DateTime date,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       assetId = Value(assetId),
+  }) : assetId = Value(assetId),
        value = Value(value),
        principal = Value(principal),
        date = Value(date);
   static Insertable<AssetHistory> custom({
-    Expression<int>? id,
     Expression<int>? assetId,
     Expression<double>? value,
     Expression<double>? principal,
@@ -1744,7 +1706,6 @@ class AssetHistoriesCompanion extends UpdateCompanion<AssetHistory> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (id != null) 'id': id,
       if (assetId != null) 'asset_id': assetId,
       if (value != null) 'value': value,
       if (principal != null) 'principal': principal,
@@ -1754,7 +1715,6 @@ class AssetHistoriesCompanion extends UpdateCompanion<AssetHistory> {
   }
 
   AssetHistoriesCompanion copyWith({
-    Value<int>? id,
     Value<int>? assetId,
     Value<double>? value,
     Value<double>? principal,
@@ -1762,7 +1722,6 @@ class AssetHistoriesCompanion extends UpdateCompanion<AssetHistory> {
     Value<int>? rowid,
   }) {
     return AssetHistoriesCompanion(
-      id: id ?? this.id,
       assetId: assetId ?? this.assetId,
       value: value ?? this.value,
       principal: principal ?? this.principal,
@@ -1774,9 +1733,6 @@ class AssetHistoriesCompanion extends UpdateCompanion<AssetHistory> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
     if (assetId.present) {
       map['asset_id'] = Variable<int>(assetId.value);
     }
@@ -1798,10 +1754,283 @@ class AssetHistoriesCompanion extends UpdateCompanion<AssetHistory> {
   @override
   String toString() {
     return (StringBuffer('AssetHistoriesCompanion(')
-          ..write('id: $id, ')
           ..write('assetId: $assetId, ')
           ..write('value: $value, ')
           ..write('principal: $principal, ')
+          ..write('date: $date, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TotalSnapshotsTable extends TotalSnapshots
+    with TableInfo<$TotalSnapshotsTable, TotalSnapshot> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TotalSnapshotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _totalValueMeta = const VerificationMeta(
+    'totalValue',
+  );
+  @override
+  late final GeneratedColumn<double> totalValue = GeneratedColumn<double>(
+    'total_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalPrincipalMeta = const VerificationMeta(
+    'totalPrincipal',
+  );
+  @override
+  late final GeneratedColumn<double> totalPrincipal = GeneratedColumn<double>(
+    'total_principal',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [totalValue, totalPrincipal, date];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'total_snapshots';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TotalSnapshot> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('total_value')) {
+      context.handle(
+        _totalValueMeta,
+        totalValue.isAcceptableOrUnknown(data['total_value']!, _totalValueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_totalValueMeta);
+    }
+    if (data.containsKey('total_principal')) {
+      context.handle(
+        _totalPrincipalMeta,
+        totalPrincipal.isAcceptableOrUnknown(
+          data['total_principal']!,
+          _totalPrincipalMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalPrincipalMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {date};
+  @override
+  TotalSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TotalSnapshot(
+      totalValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_value'],
+      )!,
+      totalPrincipal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_principal'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+    );
+  }
+
+  @override
+  $TotalSnapshotsTable createAlias(String alias) {
+    return $TotalSnapshotsTable(attachedDatabase, alias);
+  }
+}
+
+class TotalSnapshot extends DataClass implements Insertable<TotalSnapshot> {
+  final double totalValue;
+  final double totalPrincipal;
+  final DateTime date;
+  const TotalSnapshot({
+    required this.totalValue,
+    required this.totalPrincipal,
+    required this.date,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['total_value'] = Variable<double>(totalValue);
+    map['total_principal'] = Variable<double>(totalPrincipal);
+    map['date'] = Variable<DateTime>(date);
+    return map;
+  }
+
+  TotalSnapshotsCompanion toCompanion(bool nullToAbsent) {
+    return TotalSnapshotsCompanion(
+      totalValue: Value(totalValue),
+      totalPrincipal: Value(totalPrincipal),
+      date: Value(date),
+    );
+  }
+
+  factory TotalSnapshot.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TotalSnapshot(
+      totalValue: serializer.fromJson<double>(json['totalValue']),
+      totalPrincipal: serializer.fromJson<double>(json['totalPrincipal']),
+      date: serializer.fromJson<DateTime>(json['date']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'totalValue': serializer.toJson<double>(totalValue),
+      'totalPrincipal': serializer.toJson<double>(totalPrincipal),
+      'date': serializer.toJson<DateTime>(date),
+    };
+  }
+
+  TotalSnapshot copyWith({
+    double? totalValue,
+    double? totalPrincipal,
+    DateTime? date,
+  }) => TotalSnapshot(
+    totalValue: totalValue ?? this.totalValue,
+    totalPrincipal: totalPrincipal ?? this.totalPrincipal,
+    date: date ?? this.date,
+  );
+  TotalSnapshot copyWithCompanion(TotalSnapshotsCompanion data) {
+    return TotalSnapshot(
+      totalValue: data.totalValue.present
+          ? data.totalValue.value
+          : this.totalValue,
+      totalPrincipal: data.totalPrincipal.present
+          ? data.totalPrincipal.value
+          : this.totalPrincipal,
+      date: data.date.present ? data.date.value : this.date,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TotalSnapshot(')
+          ..write('totalValue: $totalValue, ')
+          ..write('totalPrincipal: $totalPrincipal, ')
+          ..write('date: $date')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(totalValue, totalPrincipal, date);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TotalSnapshot &&
+          other.totalValue == this.totalValue &&
+          other.totalPrincipal == this.totalPrincipal &&
+          other.date == this.date);
+}
+
+class TotalSnapshotsCompanion extends UpdateCompanion<TotalSnapshot> {
+  final Value<double> totalValue;
+  final Value<double> totalPrincipal;
+  final Value<DateTime> date;
+  final Value<int> rowid;
+  const TotalSnapshotsCompanion({
+    this.totalValue = const Value.absent(),
+    this.totalPrincipal = const Value.absent(),
+    this.date = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TotalSnapshotsCompanion.insert({
+    required double totalValue,
+    required double totalPrincipal,
+    required DateTime date,
+    this.rowid = const Value.absent(),
+  }) : totalValue = Value(totalValue),
+       totalPrincipal = Value(totalPrincipal),
+       date = Value(date);
+  static Insertable<TotalSnapshot> custom({
+    Expression<double>? totalValue,
+    Expression<double>? totalPrincipal,
+    Expression<DateTime>? date,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (totalValue != null) 'total_value': totalValue,
+      if (totalPrincipal != null) 'total_principal': totalPrincipal,
+      if (date != null) 'date': date,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TotalSnapshotsCompanion copyWith({
+    Value<double>? totalValue,
+    Value<double>? totalPrincipal,
+    Value<DateTime>? date,
+    Value<int>? rowid,
+  }) {
+    return TotalSnapshotsCompanion(
+      totalValue: totalValue ?? this.totalValue,
+      totalPrincipal: totalPrincipal ?? this.totalPrincipal,
+      date: date ?? this.date,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (totalValue.present) {
+      map['total_value'] = Variable<double>(totalValue.value);
+    }
+    if (totalPrincipal.present) {
+      map['total_principal'] = Variable<double>(totalPrincipal.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TotalSnapshotsCompanion(')
+          ..write('totalValue: $totalValue, ')
+          ..write('totalPrincipal: $totalPrincipal, ')
           ..write('date: $date, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2216,6 +2445,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $EntryTagsTable entryTags = $EntryTagsTable(this);
   late final $AssetsTable assets = $AssetsTable(this);
   late final $AssetHistoriesTable assetHistories = $AssetHistoriesTable(this);
+  late final $TotalSnapshotsTable totalSnapshots = $TotalSnapshotsTable(this);
   late final $BillsTable bills = $BillsTable(this);
   late final JournalDao journalDao = JournalDao(this as AppDatabase);
   late final TagDao tagDao = TagDao(this as AppDatabase);
@@ -2231,6 +2461,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     entryTags,
     assets,
     assetHistories,
+    totalSnapshots,
     bills,
   ];
   @override
@@ -3562,7 +3793,6 @@ typedef $$AssetsTableProcessedTableManager =
     >;
 typedef $$AssetHistoriesTableCreateCompanionBuilder =
     AssetHistoriesCompanion Function({
-      required int id,
       required int assetId,
       required double value,
       required double principal,
@@ -3571,7 +3801,6 @@ typedef $$AssetHistoriesTableCreateCompanionBuilder =
     });
 typedef $$AssetHistoriesTableUpdateCompanionBuilder =
     AssetHistoriesCompanion Function({
-      Value<int> id,
       Value<int> assetId,
       Value<double> value,
       Value<double> principal,
@@ -3614,11 +3843,6 @@ class $$AssetHistoriesTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<double> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnFilters(column),
@@ -3667,11 +3891,6 @@ class $$AssetHistoriesTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<double> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnOrderings(column),
@@ -3720,9 +3939,6 @@ class $$AssetHistoriesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
   GeneratedColumn<double> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
 
@@ -3786,14 +4002,12 @@ class $$AssetHistoriesTableTableManager
               $$AssetHistoriesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 Value<int> assetId = const Value.absent(),
                 Value<double> value = const Value.absent(),
                 Value<double> principal = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AssetHistoriesCompanion(
-                id: id,
                 assetId: assetId,
                 value: value,
                 principal: principal,
@@ -3802,14 +4016,12 @@ class $$AssetHistoriesTableTableManager
               ),
           createCompanionCallback:
               ({
-                required int id,
                 required int assetId,
                 required double value,
                 required double principal,
                 required DateTime date,
                 Value<int> rowid = const Value.absent(),
               }) => AssetHistoriesCompanion.insert(
-                id: id,
                 assetId: assetId,
                 value: value,
                 principal: principal,
@@ -3883,6 +4095,174 @@ typedef $$AssetHistoriesTableProcessedTableManager =
       (AssetHistory, $$AssetHistoriesTableReferences),
       AssetHistory,
       PrefetchHooks Function({bool assetId})
+    >;
+typedef $$TotalSnapshotsTableCreateCompanionBuilder =
+    TotalSnapshotsCompanion Function({
+      required double totalValue,
+      required double totalPrincipal,
+      required DateTime date,
+      Value<int> rowid,
+    });
+typedef $$TotalSnapshotsTableUpdateCompanionBuilder =
+    TotalSnapshotsCompanion Function({
+      Value<double> totalValue,
+      Value<double> totalPrincipal,
+      Value<DateTime> date,
+      Value<int> rowid,
+    });
+
+class $$TotalSnapshotsTableFilterComposer
+    extends Composer<_$AppDatabase, $TotalSnapshotsTable> {
+  $$TotalSnapshotsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<double> get totalValue => $composableBuilder(
+    column: $table.totalValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalPrincipal => $composableBuilder(
+    column: $table.totalPrincipal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TotalSnapshotsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TotalSnapshotsTable> {
+  $$TotalSnapshotsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<double> get totalValue => $composableBuilder(
+    column: $table.totalValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalPrincipal => $composableBuilder(
+    column: $table.totalPrincipal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TotalSnapshotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TotalSnapshotsTable> {
+  $$TotalSnapshotsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<double> get totalValue => $composableBuilder(
+    column: $table.totalValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get totalPrincipal => $composableBuilder(
+    column: $table.totalPrincipal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+}
+
+class $$TotalSnapshotsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TotalSnapshotsTable,
+          TotalSnapshot,
+          $$TotalSnapshotsTableFilterComposer,
+          $$TotalSnapshotsTableOrderingComposer,
+          $$TotalSnapshotsTableAnnotationComposer,
+          $$TotalSnapshotsTableCreateCompanionBuilder,
+          $$TotalSnapshotsTableUpdateCompanionBuilder,
+          (
+            TotalSnapshot,
+            BaseReferences<_$AppDatabase, $TotalSnapshotsTable, TotalSnapshot>,
+          ),
+          TotalSnapshot,
+          PrefetchHooks Function()
+        > {
+  $$TotalSnapshotsTableTableManager(
+    _$AppDatabase db,
+    $TotalSnapshotsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TotalSnapshotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TotalSnapshotsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TotalSnapshotsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<double> totalValue = const Value.absent(),
+                Value<double> totalPrincipal = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TotalSnapshotsCompanion(
+                totalValue: totalValue,
+                totalPrincipal: totalPrincipal,
+                date: date,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required double totalValue,
+                required double totalPrincipal,
+                required DateTime date,
+                Value<int> rowid = const Value.absent(),
+              }) => TotalSnapshotsCompanion.insert(
+                totalValue: totalValue,
+                totalPrincipal: totalPrincipal,
+                date: date,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TotalSnapshotsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TotalSnapshotsTable,
+      TotalSnapshot,
+      $$TotalSnapshotsTableFilterComposer,
+      $$TotalSnapshotsTableOrderingComposer,
+      $$TotalSnapshotsTableAnnotationComposer,
+      $$TotalSnapshotsTableCreateCompanionBuilder,
+      $$TotalSnapshotsTableUpdateCompanionBuilder,
+      (
+        TotalSnapshot,
+        BaseReferences<_$AppDatabase, $TotalSnapshotsTable, TotalSnapshot>,
+      ),
+      TotalSnapshot,
+      PrefetchHooks Function()
     >;
 typedef $$BillsTableCreateCompanionBuilder =
     BillsCompanion Function({
@@ -4103,6 +4483,8 @@ class $AppDatabaseManager {
       $$AssetsTableTableManager(_db, _db.assets);
   $$AssetHistoriesTableTableManager get assetHistories =>
       $$AssetHistoriesTableTableManager(_db, _db.assetHistories);
+  $$TotalSnapshotsTableTableManager get totalSnapshots =>
+      $$TotalSnapshotsTableTableManager(_db, _db.totalSnapshots);
   $$BillsTableTableManager get bills =>
       $$BillsTableTableManager(_db, _db.bills);
 }

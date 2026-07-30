@@ -5,8 +5,11 @@ import '../screens/home/home_screen.dart';
 import '../screens/journal/entry_detail_screen.dart';
 import '../screens/journal/entry_form_screen.dart';
 import '../screens/journal/journal_home_screen.dart';
+import '../models/asset.dart';
 import '../screens/asset/asset_form_screen.dart';
+import '../screens/asset/asset_history_screen.dart';
 import '../screens/asset/asset_home_screen.dart';
+import '../screens/asset/snapshot_history_screen.dart';
 import '../screens/bill/bill_form_screen.dart';
 import '../screens/bill/bill_home_screen.dart';
 import '../screens/journal/search_screen.dart';
@@ -27,16 +30,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AssetHomeScreen(),
         routes: [
           GoRoute(
+            path: 'snapshots',
+            name: 'asset-snapshots',
+            builder: (context, state) => const SnapshotHistoryScreen(),
+          ),
+          GoRoute(
             path: 'new',
             name: 'asset-new',
             builder: (context, state) => const AssetFormScreen(),
+          ),
+          GoRoute(
+            path: ':id/history',
+            name: 'asset-history',
+            builder: (context, state) {
+              final id = int.parse(state.pathParameters['id']!);
+              final name = state.uri.queryParameters['name'] ?? '';
+              return AssetHistoryScreen(assetId: id, assetName: name);
+            },
           ),
           GoRoute(
             path: ':id/edit',
             name: 'asset-edit',
             builder: (context, state) {
               final id = int.parse(state.pathParameters['id']!);
-              return AssetFormScreen(assetId: id);
+              final asset = state.extra as Asset?;
+              return AssetFormScreen(assetId: id, asset: asset);
             },
           ),
         ],

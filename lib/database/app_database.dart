@@ -64,7 +64,6 @@ class Assets extends Table {
 }
 
 class AssetHistories extends Table {
-  IntColumn get id => integer().autoIncrement()();
   IntColumn get assetId => integer().references(Assets, #id, onDelete: KeyAction.cascade)();
   RealColumn get value => real()();
   RealColumn get principal => real()();
@@ -72,6 +71,15 @@ class AssetHistories extends Table {
 
   @override
   Set<Column> get primaryKey => {assetId, date};
+}
+
+class TotalSnapshots extends Table {
+  RealColumn get totalValue => real()();
+  RealColumn get totalPrincipal => real()();
+  DateTimeColumn get date => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {date};
 }
 
 class Bills extends Table {
@@ -84,7 +92,7 @@ class Bills extends Table {
 }
 
 @DriftDatabase(
-  tables: [JournalEntries, Tags, EntryTags, Assets, AssetHistories, Bills],
+  tables: [JournalEntries, Tags, EntryTags, Assets, AssetHistories, TotalSnapshots, Bills],
   daos: [JournalDao, TagDao, AssetDao, BillDao],
 )
 class AppDatabase extends _$AppDatabase {
@@ -95,7 +103,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -123,6 +131,15 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(assets, assets.principal);
           await customStatement('UPDATE assets SET principal = 0 WHERE principal IS NULL');
           await m.createTable(assetHistories);
+        }
+        if (from < 7) {
+          await m.createTable(totalSnapshots);
+        }
+        if (from < 8) {
+          await customStatement('DROP TABLE IF EXISTS asset_histories');
+          await customStatement('DROP TABLE IF EXISTS total_snapshots');
+          await m.createTable(assetHistories);
+          await m.createTable(totalSnapshots);
         }
       },
     );
