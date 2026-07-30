@@ -993,6 +993,17 @@ class $AssetsTable extends Assets with TableInfo<$AssetsTable, Asset> {
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _principalMeta = const VerificationMeta(
+    'principal',
+  );
+  @override
+  late final GeneratedColumn<double> principal = GeneratedColumn<double>(
+    'principal',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<int> type = GeneratedColumn<int>(
@@ -1046,6 +1057,7 @@ class $AssetsTable extends Assets with TableInfo<$AssetsTable, Asset> {
     id,
     name,
     value,
+    principal,
     type,
     account,
     note,
@@ -1081,6 +1093,14 @@ class $AssetsTable extends Assets with TableInfo<$AssetsTable, Asset> {
       );
     } else if (isInserting) {
       context.missing(_valueMeta);
+    }
+    if (data.containsKey('principal')) {
+      context.handle(
+        _principalMeta,
+        principal.isAcceptableOrUnknown(data['principal']!, _principalMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_principalMeta);
     }
     if (data.containsKey('type')) {
       context.handle(
@@ -1135,6 +1155,10 @@ class $AssetsTable extends Assets with TableInfo<$AssetsTable, Asset> {
         DriftSqlType.double,
         data['${effectivePrefix}value'],
       )!,
+      principal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}principal'],
+      )!,
       type: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}type'],
@@ -1164,6 +1188,7 @@ class Asset extends DataClass implements Insertable<Asset> {
   final int id;
   final String name;
   final double value;
+  final double principal;
   final int type;
   final String account;
   final String note;
@@ -1172,6 +1197,7 @@ class Asset extends DataClass implements Insertable<Asset> {
     required this.id,
     required this.name,
     required this.value,
+    required this.principal,
     required this.type,
     required this.account,
     required this.note,
@@ -1183,6 +1209,7 @@ class Asset extends DataClass implements Insertable<Asset> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['value'] = Variable<double>(value);
+    map['principal'] = Variable<double>(principal);
     map['type'] = Variable<int>(type);
     map['account'] = Variable<String>(account);
     map['note'] = Variable<String>(note);
@@ -1195,6 +1222,7 @@ class Asset extends DataClass implements Insertable<Asset> {
       id: Value(id),
       name: Value(name),
       value: Value(value),
+      principal: Value(principal),
       type: Value(type),
       account: Value(account),
       note: Value(note),
@@ -1211,6 +1239,7 @@ class Asset extends DataClass implements Insertable<Asset> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       value: serializer.fromJson<double>(json['value']),
+      principal: serializer.fromJson<double>(json['principal']),
       type: serializer.fromJson<int>(json['type']),
       account: serializer.fromJson<String>(json['account']),
       note: serializer.fromJson<String>(json['note']),
@@ -1224,6 +1253,7 @@ class Asset extends DataClass implements Insertable<Asset> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'value': serializer.toJson<double>(value),
+      'principal': serializer.toJson<double>(principal),
       'type': serializer.toJson<int>(type),
       'account': serializer.toJson<String>(account),
       'note': serializer.toJson<String>(note),
@@ -1235,6 +1265,7 @@ class Asset extends DataClass implements Insertable<Asset> {
     int? id,
     String? name,
     double? value,
+    double? principal,
     int? type,
     String? account,
     String? note,
@@ -1243,6 +1274,7 @@ class Asset extends DataClass implements Insertable<Asset> {
     id: id ?? this.id,
     name: name ?? this.name,
     value: value ?? this.value,
+    principal: principal ?? this.principal,
     type: type ?? this.type,
     account: account ?? this.account,
     note: note ?? this.note,
@@ -1253,6 +1285,7 @@ class Asset extends DataClass implements Insertable<Asset> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       value: data.value.present ? data.value.value : this.value,
+      principal: data.principal.present ? data.principal.value : this.principal,
       type: data.type.present ? data.type.value : this.type,
       account: data.account.present ? data.account.value : this.account,
       note: data.note.present ? data.note.value : this.note,
@@ -1266,6 +1299,7 @@ class Asset extends DataClass implements Insertable<Asset> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('value: $value, ')
+          ..write('principal: $principal, ')
           ..write('type: $type, ')
           ..write('account: $account, ')
           ..write('note: $note, ')
@@ -1276,7 +1310,7 @@ class Asset extends DataClass implements Insertable<Asset> {
 
   @override
   int get hashCode =>
-      Object.hash(id, name, value, type, account, note, updatedAt);
+      Object.hash(id, name, value, principal, type, account, note, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1284,6 +1318,7 @@ class Asset extends DataClass implements Insertable<Asset> {
           other.id == this.id &&
           other.name == this.name &&
           other.value == this.value &&
+          other.principal == this.principal &&
           other.type == this.type &&
           other.account == this.account &&
           other.note == this.note &&
@@ -1294,6 +1329,7 @@ class AssetsCompanion extends UpdateCompanion<Asset> {
   final Value<int> id;
   final Value<String> name;
   final Value<double> value;
+  final Value<double> principal;
   final Value<int> type;
   final Value<String> account;
   final Value<String> note;
@@ -1302,6 +1338,7 @@ class AssetsCompanion extends UpdateCompanion<Asset> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.value = const Value.absent(),
+    this.principal = const Value.absent(),
     this.type = const Value.absent(),
     this.account = const Value.absent(),
     this.note = const Value.absent(),
@@ -1311,12 +1348,14 @@ class AssetsCompanion extends UpdateCompanion<Asset> {
     this.id = const Value.absent(),
     required String name,
     required double value,
+    required double principal,
     required int type,
     required String account,
     required String note,
     required DateTime updatedAt,
   }) : name = Value(name),
        value = Value(value),
+       principal = Value(principal),
        type = Value(type),
        account = Value(account),
        note = Value(note),
@@ -1325,6 +1364,7 @@ class AssetsCompanion extends UpdateCompanion<Asset> {
     Expression<int>? id,
     Expression<String>? name,
     Expression<double>? value,
+    Expression<double>? principal,
     Expression<int>? type,
     Expression<String>? account,
     Expression<String>? note,
@@ -1334,6 +1374,7 @@ class AssetsCompanion extends UpdateCompanion<Asset> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (value != null) 'value': value,
+      if (principal != null) 'principal': principal,
       if (type != null) 'type': type,
       if (account != null) 'account': account,
       if (note != null) 'note': note,
@@ -1345,6 +1386,7 @@ class AssetsCompanion extends UpdateCompanion<Asset> {
     Value<int>? id,
     Value<String>? name,
     Value<double>? value,
+    Value<double>? principal,
     Value<int>? type,
     Value<String>? account,
     Value<String>? note,
@@ -1354,6 +1396,7 @@ class AssetsCompanion extends UpdateCompanion<Asset> {
       id: id ?? this.id,
       name: name ?? this.name,
       value: value ?? this.value,
+      principal: principal ?? this.principal,
       type: type ?? this.type,
       account: account ?? this.account,
       note: note ?? this.note,
@@ -1372,6 +1415,9 @@ class AssetsCompanion extends UpdateCompanion<Asset> {
     }
     if (value.present) {
       map['value'] = Variable<double>(value.value);
+    }
+    if (principal.present) {
+      map['principal'] = Variable<double>(principal.value);
     }
     if (type.present) {
       map['type'] = Variable<int>(type.value);
@@ -1394,10 +1440,370 @@ class AssetsCompanion extends UpdateCompanion<Asset> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('value: $value, ')
+          ..write('principal: $principal, ')
           ..write('type: $type, ')
           ..write('account: $account, ')
           ..write('note: $note, ')
           ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AssetHistoriesTable extends AssetHistories
+    with TableInfo<$AssetHistoriesTable, AssetHistory> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AssetHistoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _assetIdMeta = const VerificationMeta(
+    'assetId',
+  );
+  @override
+  late final GeneratedColumn<int> assetId = GeneratedColumn<int>(
+    'asset_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES assets (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<double> value = GeneratedColumn<double>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _principalMeta = const VerificationMeta(
+    'principal',
+  );
+  @override
+  late final GeneratedColumn<double> principal = GeneratedColumn<double>(
+    'principal',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, assetId, value, principal, date];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'asset_histories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AssetHistory> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('asset_id')) {
+      context.handle(
+        _assetIdMeta,
+        assetId.isAcceptableOrUnknown(data['asset_id']!, _assetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_assetIdMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('principal')) {
+      context.handle(
+        _principalMeta,
+        principal.isAcceptableOrUnknown(data['principal']!, _principalMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_principalMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {assetId, date};
+  @override
+  AssetHistory map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AssetHistory(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      assetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}asset_id'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}value'],
+      )!,
+      principal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}principal'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+    );
+  }
+
+  @override
+  $AssetHistoriesTable createAlias(String alias) {
+    return $AssetHistoriesTable(attachedDatabase, alias);
+  }
+}
+
+class AssetHistory extends DataClass implements Insertable<AssetHistory> {
+  final int id;
+  final int assetId;
+  final double value;
+  final double principal;
+  final DateTime date;
+  const AssetHistory({
+    required this.id,
+    required this.assetId,
+    required this.value,
+    required this.principal,
+    required this.date,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['asset_id'] = Variable<int>(assetId);
+    map['value'] = Variable<double>(value);
+    map['principal'] = Variable<double>(principal);
+    map['date'] = Variable<DateTime>(date);
+    return map;
+  }
+
+  AssetHistoriesCompanion toCompanion(bool nullToAbsent) {
+    return AssetHistoriesCompanion(
+      id: Value(id),
+      assetId: Value(assetId),
+      value: Value(value),
+      principal: Value(principal),
+      date: Value(date),
+    );
+  }
+
+  factory AssetHistory.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AssetHistory(
+      id: serializer.fromJson<int>(json['id']),
+      assetId: serializer.fromJson<int>(json['assetId']),
+      value: serializer.fromJson<double>(json['value']),
+      principal: serializer.fromJson<double>(json['principal']),
+      date: serializer.fromJson<DateTime>(json['date']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'assetId': serializer.toJson<int>(assetId),
+      'value': serializer.toJson<double>(value),
+      'principal': serializer.toJson<double>(principal),
+      'date': serializer.toJson<DateTime>(date),
+    };
+  }
+
+  AssetHistory copyWith({
+    int? id,
+    int? assetId,
+    double? value,
+    double? principal,
+    DateTime? date,
+  }) => AssetHistory(
+    id: id ?? this.id,
+    assetId: assetId ?? this.assetId,
+    value: value ?? this.value,
+    principal: principal ?? this.principal,
+    date: date ?? this.date,
+  );
+  AssetHistory copyWithCompanion(AssetHistoriesCompanion data) {
+    return AssetHistory(
+      id: data.id.present ? data.id.value : this.id,
+      assetId: data.assetId.present ? data.assetId.value : this.assetId,
+      value: data.value.present ? data.value.value : this.value,
+      principal: data.principal.present ? data.principal.value : this.principal,
+      date: data.date.present ? data.date.value : this.date,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssetHistory(')
+          ..write('id: $id, ')
+          ..write('assetId: $assetId, ')
+          ..write('value: $value, ')
+          ..write('principal: $principal, ')
+          ..write('date: $date')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, assetId, value, principal, date);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AssetHistory &&
+          other.id == this.id &&
+          other.assetId == this.assetId &&
+          other.value == this.value &&
+          other.principal == this.principal &&
+          other.date == this.date);
+}
+
+class AssetHistoriesCompanion extends UpdateCompanion<AssetHistory> {
+  final Value<int> id;
+  final Value<int> assetId;
+  final Value<double> value;
+  final Value<double> principal;
+  final Value<DateTime> date;
+  final Value<int> rowid;
+  const AssetHistoriesCompanion({
+    this.id = const Value.absent(),
+    this.assetId = const Value.absent(),
+    this.value = const Value.absent(),
+    this.principal = const Value.absent(),
+    this.date = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AssetHistoriesCompanion.insert({
+    required int id,
+    required int assetId,
+    required double value,
+    required double principal,
+    required DateTime date,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       assetId = Value(assetId),
+       value = Value(value),
+       principal = Value(principal),
+       date = Value(date);
+  static Insertable<AssetHistory> custom({
+    Expression<int>? id,
+    Expression<int>? assetId,
+    Expression<double>? value,
+    Expression<double>? principal,
+    Expression<DateTime>? date,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (assetId != null) 'asset_id': assetId,
+      if (value != null) 'value': value,
+      if (principal != null) 'principal': principal,
+      if (date != null) 'date': date,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AssetHistoriesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? assetId,
+    Value<double>? value,
+    Value<double>? principal,
+    Value<DateTime>? date,
+    Value<int>? rowid,
+  }) {
+    return AssetHistoriesCompanion(
+      id: id ?? this.id,
+      assetId: assetId ?? this.assetId,
+      value: value ?? this.value,
+      principal: principal ?? this.principal,
+      date: date ?? this.date,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (assetId.present) {
+      map['asset_id'] = Variable<int>(assetId.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<double>(value.value);
+    }
+    if (principal.present) {
+      map['principal'] = Variable<double>(principal.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssetHistoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('assetId: $assetId, ')
+          ..write('value: $value, ')
+          ..write('principal: $principal, ')
+          ..write('date: $date, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -1809,6 +2215,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TagsTable tags = $TagsTable(this);
   late final $EntryTagsTable entryTags = $EntryTagsTable(this);
   late final $AssetsTable assets = $AssetsTable(this);
+  late final $AssetHistoriesTable assetHistories = $AssetHistoriesTable(this);
   late final $BillsTable bills = $BillsTable(this);
   late final JournalDao journalDao = JournalDao(this as AppDatabase);
   late final TagDao tagDao = TagDao(this as AppDatabase);
@@ -1823,6 +2230,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     tags,
     entryTags,
     assets,
+    assetHistories,
     bills,
   ];
   @override
@@ -1840,6 +2248,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('entry_tags', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'assets',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('asset_histories', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -2799,6 +3214,7 @@ typedef $$AssetsTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       required double value,
+      required double principal,
       required int type,
       required String account,
       required String note,
@@ -2809,11 +3225,35 @@ typedef $$AssetsTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<double> value,
+      Value<double> principal,
       Value<int> type,
       Value<String> account,
       Value<String> note,
       Value<DateTime> updatedAt,
     });
+
+final class $$AssetsTableReferences
+    extends BaseReferences<_$AppDatabase, $AssetsTable, Asset> {
+  $$AssetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$AssetHistoriesTable, List<AssetHistory>>
+  _assetHistoriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.assetHistories,
+    aliasName: 'assets__id__asset_histories__asset_id',
+  );
+
+  $$AssetHistoriesTableProcessedTableManager get assetHistoriesRefs {
+    final manager = $$AssetHistoriesTableTableManager(
+      $_db,
+      $_db.assetHistories,
+    ).filter((f) => f.assetId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_assetHistoriesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$AssetsTableFilterComposer
     extends Composer<_$AppDatabase, $AssetsTable> {
@@ -2839,6 +3279,11 @@ class $$AssetsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<double> get principal => $composableBuilder(
+    column: $table.principal,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnFilters(column),
@@ -2858,6 +3303,31 @@ class $$AssetsTableFilterComposer
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> assetHistoriesRefs(
+    Expression<bool> Function($$AssetHistoriesTableFilterComposer f) f,
+  ) {
+    final $$AssetHistoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.assetHistories,
+      getReferencedColumn: (t) => t.assetId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetHistoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.assetHistories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AssetsTableOrderingComposer
@@ -2881,6 +3351,11 @@ class $$AssetsTableOrderingComposer
 
   ColumnOrderings<double> get value => $composableBuilder(
     column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get principal => $composableBuilder(
+    column: $table.principal,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2923,6 +3398,9 @@ class $$AssetsTableAnnotationComposer
   GeneratedColumn<double> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
 
+  GeneratedColumn<double> get principal =>
+      $composableBuilder(column: $table.principal, builder: (column) => column);
+
   GeneratedColumn<int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
@@ -2934,6 +3412,31 @@ class $$AssetsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> assetHistoriesRefs<T extends Object>(
+    Expression<T> Function($$AssetHistoriesTableAnnotationComposer a) f,
+  ) {
+    final $$AssetHistoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.assetHistories,
+      getReferencedColumn: (t) => t.assetId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetHistoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.assetHistories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AssetsTableTableManager
@@ -2947,9 +3450,9 @@ class $$AssetsTableTableManager
           $$AssetsTableAnnotationComposer,
           $$AssetsTableCreateCompanionBuilder,
           $$AssetsTableUpdateCompanionBuilder,
-          (Asset, BaseReferences<_$AppDatabase, $AssetsTable, Asset>),
+          (Asset, $$AssetsTableReferences),
           Asset,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool assetHistoriesRefs})
         > {
   $$AssetsTableTableManager(_$AppDatabase db, $AssetsTable table)
     : super(
@@ -2967,6 +3470,7 @@ class $$AssetsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<double> value = const Value.absent(),
+                Value<double> principal = const Value.absent(),
                 Value<int> type = const Value.absent(),
                 Value<String> account = const Value.absent(),
                 Value<String> note = const Value.absent(),
@@ -2975,6 +3479,7 @@ class $$AssetsTableTableManager
                 id: id,
                 name: name,
                 value: value,
+                principal: principal,
                 type: type,
                 account: account,
                 note: note,
@@ -2985,6 +3490,7 @@ class $$AssetsTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 required double value,
+                required double principal,
                 required int type,
                 required String account,
                 required String note,
@@ -2993,15 +3499,49 @@ class $$AssetsTableTableManager
                 id: id,
                 name: name,
                 value: value,
+                principal: principal,
                 type: type,
                 account: account,
                 note: note,
                 updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $$AssetsTableReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({assetHistoriesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (assetHistoriesRefs) db.assetHistories,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (assetHistoriesRefs)
+                    await $_getPrefetchedData<
+                      Asset,
+                      $AssetsTable,
+                      AssetHistory
+                    >(
+                      currentTable: table,
+                      referencedTable: $$AssetsTableReferences
+                          ._assetHistoriesRefsTable(db),
+                      managerFromTypedResult: (p0) => $$AssetsTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).assetHistoriesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.assetId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -3016,9 +3556,333 @@ typedef $$AssetsTableProcessedTableManager =
       $$AssetsTableAnnotationComposer,
       $$AssetsTableCreateCompanionBuilder,
       $$AssetsTableUpdateCompanionBuilder,
-      (Asset, BaseReferences<_$AppDatabase, $AssetsTable, Asset>),
+      (Asset, $$AssetsTableReferences),
       Asset,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool assetHistoriesRefs})
+    >;
+typedef $$AssetHistoriesTableCreateCompanionBuilder =
+    AssetHistoriesCompanion Function({
+      required int id,
+      required int assetId,
+      required double value,
+      required double principal,
+      required DateTime date,
+      Value<int> rowid,
+    });
+typedef $$AssetHistoriesTableUpdateCompanionBuilder =
+    AssetHistoriesCompanion Function({
+      Value<int> id,
+      Value<int> assetId,
+      Value<double> value,
+      Value<double> principal,
+      Value<DateTime> date,
+      Value<int> rowid,
+    });
+
+final class $$AssetHistoriesTableReferences
+    extends BaseReferences<_$AppDatabase, $AssetHistoriesTable, AssetHistory> {
+  $$AssetHistoriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AssetsTable _assetIdTable(_$AppDatabase db) =>
+      db.assets.createAlias('asset_histories__asset_id__assets__id');
+
+  $$AssetsTableProcessedTableManager get assetId {
+    final $_column = $_itemColumn<int>('asset_id')!;
+
+    final manager = $$AssetsTableTableManager(
+      $_db,
+      $_db.assets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_assetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AssetHistoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $AssetHistoriesTable> {
+  $$AssetHistoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get principal => $composableBuilder(
+    column: $table.principal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AssetsTableFilterComposer get assetId {
+    final $$AssetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.assetId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableFilterComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AssetHistoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AssetHistoriesTable> {
+  $$AssetHistoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get principal => $composableBuilder(
+    column: $table.principal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AssetsTableOrderingComposer get assetId {
+    final $$AssetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.assetId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AssetHistoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AssetHistoriesTable> {
+  $$AssetHistoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<double> get principal =>
+      $composableBuilder(column: $table.principal, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  $$AssetsTableAnnotationComposer get assetId {
+    final $$AssetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.assetId,
+      referencedTable: $db.assets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AssetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.assets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AssetHistoriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AssetHistoriesTable,
+          AssetHistory,
+          $$AssetHistoriesTableFilterComposer,
+          $$AssetHistoriesTableOrderingComposer,
+          $$AssetHistoriesTableAnnotationComposer,
+          $$AssetHistoriesTableCreateCompanionBuilder,
+          $$AssetHistoriesTableUpdateCompanionBuilder,
+          (AssetHistory, $$AssetHistoriesTableReferences),
+          AssetHistory,
+          PrefetchHooks Function({bool assetId})
+        > {
+  $$AssetHistoriesTableTableManager(
+    _$AppDatabase db,
+    $AssetHistoriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AssetHistoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AssetHistoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AssetHistoriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> assetId = const Value.absent(),
+                Value<double> value = const Value.absent(),
+                Value<double> principal = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AssetHistoriesCompanion(
+                id: id,
+                assetId: assetId,
+                value: value,
+                principal: principal,
+                date: date,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int id,
+                required int assetId,
+                required double value,
+                required double principal,
+                required DateTime date,
+                Value<int> rowid = const Value.absent(),
+              }) => AssetHistoriesCompanion.insert(
+                id: id,
+                assetId: assetId,
+                value: value,
+                principal: principal,
+                date: date,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$AssetHistoriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({assetId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (assetId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.assetId,
+                                referencedTable: $$AssetHistoriesTableReferences
+                                    ._assetIdTable(db),
+                                referencedColumn:
+                                    $$AssetHistoriesTableReferences
+                                        ._assetIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AssetHistoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AssetHistoriesTable,
+      AssetHistory,
+      $$AssetHistoriesTableFilterComposer,
+      $$AssetHistoriesTableOrderingComposer,
+      $$AssetHistoriesTableAnnotationComposer,
+      $$AssetHistoriesTableCreateCompanionBuilder,
+      $$AssetHistoriesTableUpdateCompanionBuilder,
+      (AssetHistory, $$AssetHistoriesTableReferences),
+      AssetHistory,
+      PrefetchHooks Function({bool assetId})
     >;
 typedef $$BillsTableCreateCompanionBuilder =
     BillsCompanion Function({
@@ -3237,6 +4101,8 @@ class $AppDatabaseManager {
       $$EntryTagsTableTableManager(_db, _db.entryTags);
   $$AssetsTableTableManager get assets =>
       $$AssetsTableTableManager(_db, _db.assets);
+  $$AssetHistoriesTableTableManager get assetHistories =>
+      $$AssetHistoriesTableTableManager(_db, _db.assetHistories);
   $$BillsTableTableManager get bills =>
       $$BillsTableTableManager(_db, _db.bills);
 }

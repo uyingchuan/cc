@@ -18,6 +18,7 @@ class Asset {
   final int id;
   final String name;
   final double value;
+  final double principal;
   final AssetType type;
   final String account;
   final String note;
@@ -27,16 +28,21 @@ class Asset {
     required this.id,
     required this.name,
     required this.value,
+    this.principal = 0,
     required this.type,
     this.account = '',
     required this.note,
     required this.updatedAt,
   });
 
+  double get profit => value - principal;
+  double get profitRate => principal > 0 ? profit / principal * 100 : 0;
+
   Asset copyWith({
     int? id,
     String? name,
     double? value,
+    double? principal,
     AssetType? type,
     String? account,
     String? note,
@@ -46,6 +52,7 @@ class Asset {
       id: id ?? this.id,
       name: name ?? this.name,
       value: value ?? this.value,
+      principal: principal ?? this.principal,
       type: type ?? this.type,
       account: account ?? this.account,
       note: note ?? this.note,
@@ -57,6 +64,7 @@ class Asset {
         'id': id,
         'name': name,
         'value': value,
+        'principal': principal,
         'type': type.label,
         'account': account,
         'note': note,

@@ -29,6 +29,7 @@ class AssetRepository {
   Future<int> create({
     required String name,
     required double value,
+    double principal = 0,
     required model.AssetType type,
     String account = '',
     String note = '',
@@ -38,6 +39,7 @@ class AssetRepository {
       db.AssetsCompanion(
         name: Value(name),
         value: Value(value),
+        principal: Value(principal),
         type: Value(type.index),
         account: Value(account),
         note: Value(note),
@@ -50,21 +52,24 @@ class AssetRepository {
     required int id,
     required String name,
     required double value,
+    double principal = 0,
     required model.AssetType type,
     String account = '',
     String note = '',
-  }) {
-    return _db.assetDao.updateAsset(
+  }) async {
+    await _db.assetDao.updateAsset(
       id,
       db.AssetsCompanion(
         name: Value(name),
         value: Value(value),
+        principal: Value(principal),
         type: Value(type.index),
         account: Value(account),
         note: Value(note),
         updatedAt: Value(DateTime.now()),
       ),
     );
+    await _db.assetDao.upsertHistory(id, value, principal);
   }
 
   Future<void> delete(int id) => _db.assetDao.deleteAsset(id);
@@ -74,6 +79,7 @@ class AssetRepository {
       id: data.id,
       name: data.name,
       value: data.value,
+      principal: data.principal,
       type: model.AssetType.fromValue(data.type),
       account: data.account,
       note: data.note,

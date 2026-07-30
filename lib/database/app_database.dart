@@ -56,10 +56,22 @@ class Assets extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
   RealColumn get value => real()();
+  RealColumn get principal => real()();
   IntColumn get type => integer()();
   TextColumn get account => text().withLength(min: 0, max: 100)();
   TextColumn get note => text().withLength(min: 0, max: 500)();
   DateTimeColumn get updatedAt => dateTime()();
+}
+
+class AssetHistories extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get assetId => integer().references(Assets, #id, onDelete: KeyAction.cascade)();
+  RealColumn get value => real()();
+  RealColumn get principal => real()();
+  DateTimeColumn get date => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {assetId, date};
 }
 
 class Bills extends Table {
@@ -72,7 +84,7 @@ class Bills extends Table {
 }
 
 @DriftDatabase(
-  tables: [JournalEntries, Tags, EntryTags, Assets, Bills],
+  tables: [JournalEntries, Tags, EntryTags, Assets, AssetHistories, Bills],
   daos: [JournalDao, TagDao, AssetDao, BillDao],
 )
 class AppDatabase extends _$AppDatabase {
@@ -83,7 +95,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -106,6 +118,11 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 5) {
           await m.createTable(bills);
+        }
+        if (from < 6) {
+          await m.addColumn(assets, assets.principal);
+          await customStatement('UPDATE assets SET principal = 0 WHERE principal IS NULL');
+          await m.createTable(assetHistories);
         }
       },
     );

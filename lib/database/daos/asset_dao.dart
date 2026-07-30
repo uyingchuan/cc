@@ -4,7 +4,7 @@ import '../app_database.dart';
 
 part 'asset_dao.g.dart';
 
-@DriftAccessor(tables: [Assets])
+@DriftAccessor(tables: [Assets, AssetHistories])
 class AssetDao extends DatabaseAccessor<AppDatabase> with _$AssetDaoMixin {
   AssetDao(super.db);
 
@@ -36,5 +36,21 @@ class AssetDao extends DatabaseAccessor<AppDatabase> with _$AssetDaoMixin {
 
   Future<void> deleteAsset(int id) {
     return (delete(assets)..where((e) => e.id.equals(id))).go();
+  }
+
+  Future<void> upsertHistory(int assetId, double value, double principal) {
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    return customStatement(
+      'INSERT OR REPLACE INTO asset_histories (asset_id, value, principal, date) '
+      'VALUES (?, ?, ?, ?)',
+      [assetId, value, principal, today.millisecondsSinceEpoch],
+    );
+  }
+
+  Future<List<AssetHistory>> getHistory(int assetId) {
+    return (select(assetHistories)
+          ..where((e) => e.assetId.equals(assetId))
+          ..orderBy([(e) => OrderingTerm(expression: e.date, mode: OrderingMode.asc)]))
+        .get();
   }
 }

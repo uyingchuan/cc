@@ -17,6 +17,7 @@ class AssetFormScreen extends ConsumerStatefulWidget {
 class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
   final _nameController = TextEditingController();
   final _valueController = TextEditingController();
+  final _principalController = TextEditingController();
   final _accountController = TextEditingController();
   final _noteController = TextEditingController();
   AssetType _type = AssetType.cash;
@@ -29,6 +30,7 @@ class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
   void dispose() {
     _nameController.dispose();
     _valueController.dispose();
+    _principalController.dispose();
     _accountController.dispose();
     _noteController.dispose();
     super.dispose();
@@ -41,6 +43,7 @@ class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
 
     _nameController.text = asset.name;
     _valueController.text = asset.value.toString();
+    _principalController.text = asset.principal > 0 ? asset.principal.toString() : '';
     _accountController.text = asset.account;
     _noteController.text = asset.note;
     _type = asset.type;
@@ -75,6 +78,9 @@ class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
       return;
     }
 
+    final principalText = _principalController.text.trim();
+    final principal = double.tryParse(principalText) ?? 0;
+
     setState(() => _isSaving = true);
     try {
       final repo = ref.read(assetRepositoryProvider);
@@ -83,6 +89,7 @@ class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
           id: widget.assetId!,
           name: name,
           value: value,
+          principal: principal,
           type: _type,
           account: _accountController.text.trim(),
           note: _noteController.text.trim(),
@@ -91,6 +98,7 @@ class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
         await repo.create(
           name: name,
           value: value,
+          principal: principal,
           type: _type,
           account: _accountController.text.trim(),
           note: _noteController.text.trim(),
@@ -180,6 +188,20 @@ class _AssetFormScreenState extends ConsumerState<AssetFormScreen> {
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 labelText: '金额',
+                prefixText: '¥ ',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _principalController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: '本金（可选）',
+                hintText: '投入成本，用于计算收益',
                 prefixText: '¥ ',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

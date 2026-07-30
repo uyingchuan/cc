@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../models/asset.dart';
 import '../../providers/asset_providers.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_state.dart';
@@ -27,7 +28,10 @@ class AssetHomeScreen extends ConsumerWidget {
             );
           }
 
-          final total = assets.fold<double>(0, (sum, a) => sum + a.value);
+          final totalValue = assets.fold<double>(0, (sum, a) => sum + a.value);
+          final totalPrincipal = assets.fold<double>(0, (sum, a) => sum + a.principal);
+          final totalProfit = totalValue - totalPrincipal;
+          final totalRate = totalPrincipal > 0 ? totalProfit / totalPrincipal * 100 : 0.0;
 
           return ListView(
             padding: const EdgeInsets.only(bottom: 80),
@@ -51,78 +55,114 @@ class AssetHomeScreen extends ConsumerWidget {
                         style: TextStyle(color: Colors.white70, fontSize: 14)),
                     const SizedBox(height: 4),
                     Text(
-                      '¥${NumberFormat('#,##0.00').format(total)}',
+                      '¥${NumberFormat('#,##0.00').format(totalValue)}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _TotalItem('本金', totalPrincipal),
+                        _TotalItem('收益',
+                            totalProfit,
+                            color: totalProfit >= 0 ? Colors.lightGreenAccent : Colors.redAccent),
+                        _TotalItem('收益率',
+                            totalRate,
+                            color: totalRate >= 0 ? Colors.lightGreenAccent : Colors.redAccent,
+                            suffix: '%'),
+                      ],
+                    ),
                   ],
                 ),
               ),
 
-              // Asset list
-              ...assets.map((asset) => Card(
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: ListTile(
-                      title: Row(
-                        children: [
-                          Expanded(
-                            child: Text(asset.name,
-                                style:
-                                    const TextStyle(fontWeight: FontWeight.w500)),
+              // Asset list grouped by type
+              for (final type in AssetType.values)
+                if (assets.any((a) => a.type == type)) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: Color(type.color),
+                            shape: BoxShape.circle,
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Color(asset.type.color).withAlpha(25),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              asset.type.label,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Color(asset.type.color),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(type.label,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(type.color),
+                            )),
+                        const Spacer(),
+                        Text(
+                          '¥${NumberFormat('#,##0.00').format(assets.where((a) => a.type == type).fold<double>(0, (s, a) => s + a.value))}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
-                        ],
-                      ),
-                      subtitle: Text(
-                        asset.account.isNotEmpty
-                            ? '${asset.account} · ${DateFormat('M月d日 HH:mm').format(asset.updatedAt)}'
-                            : '更新于 ${DateFormat('M月d日 HH:mm').format(asset.updatedAt)}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
                         ),
-                      ),
-                      trailing: Text(
-                        '¥${NumberFormat('#,##0.00').format(asset.value)}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      onTap: () => context.push('/assets/${asset.id}/edit'),
-                      onLongPress: () async {
-                        final confirmed = await showConfirmDialog(
-                          context,
-                          title: '删除资产',
-                          message: '确定要删除「${asset.name}」吗？',
-                          confirmLabel: '删除',
-                          destructive: true,
-                        );
-                        if (confirmed) {
-                          ref.read(assetRepositoryProvider).delete(asset.id);
-                        }
-                      },
+                      ],
                     ),
-                  )),
+                  ),
+                  ...assets
+                      .where((a) => a.type == type)
+                      .map((asset) => Card(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 3),
+                            child: ListTile(
+                              title: Text(asset.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w500)),
+                              subtitle: Text(
+                                [
+                                  if (asset.account.isNotEmpty) asset.account,
+                                  '市值 ¥${NumberFormat('#,##0.00').format(asset.value)}',
+                                  if (asset.principal > 0)
+                                    '${asset.profit >= 0 ? '+' : ''}¥${NumberFormat('#,##0.00').format(asset.profit)}',
+                                ].join(' · '),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              trailing: asset.principal > 0
+                                  ? Text(
+                                      '${asset.profitRate.toStringAsFixed(1)}%',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: asset.profit >= 0
+                                            ? Colors.green
+                                            : theme.colorScheme.error,
+                                      ),
+                                    )
+                                  : null,
+                              onTap: () =>
+                                  context.push('/assets/${asset.id}/edit'),
+                              onLongPress: () async {
+                                final confirmed = await showConfirmDialog(
+                                  context,
+                                  title: '删除资产',
+                                  message: '确定要删除「${asset.name}」吗？',
+                                  confirmLabel: '删除',
+                                  destructive: true,
+                                );
+                                if (confirmed) {
+                                  ref
+                                      .read(assetRepositoryProvider)
+                                      .delete(asset.id);
+                                }
+                              },
+                            ),
+                          )),
+                ],
             ],
           );
         },
@@ -133,6 +173,36 @@ class AssetHomeScreen extends ConsumerWidget {
         onPressed: () => context.push('/assets/new'),
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+class _TotalItem extends StatelessWidget {
+  final String label;
+  final double value;
+  final Color? color;
+  final String? suffix;
+
+  const _TotalItem(this.label, this.value, {this.color, this.suffix});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(label,
+            style: const TextStyle(color: Colors.white60, fontSize: 12)),
+        const SizedBox(height: 2),
+        Text(
+          suffix != null
+              ? '${value.toStringAsFixed(1)}$suffix'
+              : '¥${NumberFormat('#,##0.00').format(value)}',
+          style: TextStyle(
+            color: color ?? Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }
