@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
+import '../../core/date_utils.dart';
 import '../../models/mood.dart';
 import '../../providers/journal_providers.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/entry_card.dart';
 
 class JournalHomeScreen extends ConsumerStatefulWidget {
   const JournalHomeScreen({super.key});
@@ -17,14 +20,31 @@ class JournalHomeScreen extends ConsumerStatefulWidget {
 class _JournalHomeScreenState extends ConsumerState<JournalHomeScreen> {
   final _contentController = TextEditingController();
   final _focusNode = FocusNode();
+  final _scrollController = ScrollController();
   Mood _selectedMood = Mood.neutral;
   bool _isSubmitting = false;
+  Timer? _refreshTimer;
+  int _previousLength = 0;
 
   @override
   void dispose() {
     _contentController.dispose();
     _focusNode.dispose();
+    _scrollController.dispose();
+    _refreshTimer?.cancel();
     super.dispose();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   Future<void> _send() async {
@@ -41,6 +61,7 @@ class _JournalHomeScreenState extends ConsumerState<JournalHomeScreen> {
           );
       _contentController.clear();
       _focusNode.requestFocus();
+      _scrollToBottom();
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -57,12 +78,9 @@ class _JournalHomeScreenState extends ConsumerState<JournalHomeScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '选择心情',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text('选择心情',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 12,
@@ -94,16 +112,15 @@ class _JournalHomeScreenState extends ConsumerState<JournalHomeScreen> {
                           children: [
                             Icon(mood.icon, size: 32, color: color),
                             const SizedBox(height: 6),
-                            Text(
-                              mood.label,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isSelected ? color : theme.colorScheme.onSurface,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
-                              ),
-                            ),
+                            Text(mood.label,
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: isSelected
+                                        ? color
+                                        : theme.colorScheme.onSurface,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal)),
                           ],
                         ),
                       ),
@@ -125,6 +142,12 @@ class _JournalHomeScreenState extends ConsumerState<JournalHomeScreen> {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final bottomSafe = MediaQuery.of(context).padding.bottom;
 
+    // Reset timer on each build
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('随手记'),
@@ -141,7 +164,7 @@ class _JournalHomeScreenState extends ConsumerState<JournalHomeScreen> {
       ),
       body: Column(
         children: [
-          // Timeline
+          // Chat timeline
           Expanded(
             child: GestureDetector(
               onTap: () => _focusNode.unfocus(),
@@ -159,16 +182,111 @@ class _JournalHomeScreenState extends ConsumerState<JournalHomeScreen> {
                       ],
                     );
                   }
-                  return ListView.builder(
-                    padding: const EdgeInsets.only(top: 8, bottom: 8),
-                    itemCount: entries.length,
-                    itemBuilder: (context, index) {
-                      final entry = entries[index];
-                      return EntryCard(
-                        entry: entry,
+
+                  // Reverse: oldest first (chat style)
+                  final reversed = entries.reversed.toList();
+
+                  // Auto-scroll on new entries
+                  if (reversed.length > _previousLength) {
+                    _previousLength = reversed.length;
+                    if (_previousLength > 7) {
+                      _scrollToBottom();
+                    }
+                  }
+
+                  // Build chat items with date separators
+                  final items = <Widget>[];
+                  String? lastDateKey;
+                  for (final entry in reversed) {
+                    final dateKey = DateFormat('yyyy-MM-dd').format(entry.entryDate);
+                    if (dateKey != lastDateKey) {
+                      lastDateKey = dateKey;
+                      final now = DateTime.now();
+                      final today = DateTime(now.year, now.month, now.day);
+                      final dateDay = DateTime(
+                          entry.entryDate.year, entry.entryDate.month, entry.entryDate.day);
+                      String label;
+                      if (dateDay == today) {
+                        label = '今天';
+                      } else if (dateDay == today.subtract(const Duration(days: 1))) {
+                        label = '昨天';
+                      } else if (entry.entryDate.year == now.year) {
+                        label = DateFormat('M月d日').format(entry.entryDate);
+                      } else {
+                        label = DateFormat('yyyy年M月d日').format(entry.entryDate);
+                      }
+                      items.add(Center(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(label,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant)),
+                        ),
+                      ));
+                    }
+
+                    // Chat bubble
+                    final moodColor = Color(entry.mood.color);
+                    items.add(Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                      child: GestureDetector(
                         onTap: () => context.push('/journal/${entry.id}'),
-                      );
-                    },
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Mood icon
+                            Container(
+                              width: 36,
+                              height: 36,
+                              margin: const EdgeInsets.only(top: 2),
+                              decoration: BoxDecoration(
+                                color: moodColor.withAlpha(25),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(entry.mood.icon, size: 20, color: moodColor),
+                            ),
+                            const SizedBox(width: 8),
+                            // Content bubble
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(entry.content,
+                                        style: theme.textTheme.bodyMedium),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      formatDate(entry.entryDate),
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                          fontSize: 10),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ));
+                  }
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: items.length,
+                    itemBuilder: (_, i) => items[i],
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -211,7 +329,6 @@ class _JournalHomeScreenState extends ConsumerState<JournalHomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-
                 // Text field
                 Expanded(
                   child: TextField(
@@ -235,7 +352,6 @@ class _JournalHomeScreenState extends ConsumerState<JournalHomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-
                 // Send button
                 _isSubmitting
                     ? SizedBox(
