@@ -28,6 +28,8 @@ class BillHomeScreen extends ConsumerWidget {
             );
           }
 
+          final stats = ref.watch(billStatsProvider);
+
           final groups = <String, List<Bill>>{};
           for (final bill in bills) {
             final key = DateFormat('yyyy-MM-dd').format(bill.billDate);
@@ -35,6 +37,8 @@ class BillHomeScreen extends ConsumerWidget {
           }
 
           final items = <Widget>[];
+          items.add(_buildStatsCard(context, stats));
+
           for (final key in groups.keys) {
             final groupBills = groups[key]!;
             final date = groupBills.first.billDate;
@@ -136,4 +140,85 @@ class BillHomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+Widget _buildStatsCard(BuildContext context, BillPeriodStats stats) {
+  final theme = Theme.of(context);
+
+  return Card(
+    margin: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildPeriod(
+              context,
+              '本周消费',
+              stats.thisWeek,
+              '上周消费',
+              stats.lastWeek,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              width: 1,
+              height: 44,
+              color: theme.dividerColor.withAlpha(128),
+            ),
+          ),
+          Expanded(
+            child: _buildPeriod(
+              context,
+              '本月消费',
+              stats.thisMonth,
+              '上月消费',
+              stats.lastMonth,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildPeriod(
+  BuildContext context,
+  String label,
+  double current,
+  String prevLabel,
+  double previous,
+) {
+  final theme = Theme.of(context);
+
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(label,
+          style: theme.textTheme.bodySmall
+              ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+      const SizedBox(height: 6),
+      Text(
+        '¥${NumberFormat('#,##0.00').format(current)}',
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurface,
+        ),
+      ),
+      const SizedBox(height: 10),
+      Text(prevLabel,
+          style: theme.textTheme.bodySmall
+              ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+      const SizedBox(height: 4),
+      Text(
+        '¥${NumberFormat('#,##0.00').format(previous)}',
+        style: TextStyle(
+          fontSize: 13,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    ],
+  );
 }

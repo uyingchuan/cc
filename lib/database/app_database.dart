@@ -6,6 +6,7 @@ import 'daos/asset_dao.dart';
 import 'daos/bill_dao.dart';
 import 'daos/journal_dao.dart';
 import 'daos/tag_dao.dart';
+import 'daos/time_log_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -91,9 +92,18 @@ class Bills extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
+class TimeLogs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get category => integer()();
+  DateTimeColumn get startTime => dateTime()();
+  IntColumn get durationMin => integer()();
+  TextColumn get note => text().withLength(min: 0, max: 500)();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
 @DriftDatabase(
-  tables: [JournalEntries, Tags, EntryTags, Assets, AssetHistories, TotalSnapshots, Bills],
-  daos: [JournalDao, TagDao, AssetDao, BillDao],
+  tables: [JournalEntries, Tags, EntryTags, Assets, AssetHistories, TotalSnapshots, Bills, TimeLogs],
+  daos: [JournalDao, TagDao, AssetDao, BillDao, TimeLogDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -103,7 +113,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -140,6 +150,13 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('DROP TABLE IF EXISTS total_snapshots');
           await m.createTable(assetHistories);
           await m.createTable(totalSnapshots);
+        }
+        if (from < 9) {
+          await m.createTable(timeLogs);
+        }
+        if (from < 10) {
+          await customStatement('DROP TABLE IF EXISTS time_logs');
+          await m.createTable(timeLogs);
         }
       },
     );

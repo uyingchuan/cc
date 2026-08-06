@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../screens/home/home_screen.dart';
+import '../screens/timelog/time_log_form_screen.dart';
+import '../screens/timelog/time_log_home_screen.dart';
 import '../screens/journal/entry_detail_screen.dart';
 import '../screens/journal/entry_form_screen.dart';
 import '../screens/journal/journal_home_screen.dart';
@@ -23,6 +25,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/',
         name: 'home',
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/timelog',
+        name: 'timelog',
+        builder: (context, state) => const TimeLogHomeScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: 'timelog-new',
+            builder: (context, state) => const TimeLogFormScreen(),
+          ),
+          GoRoute(
+            path: ':id/edit',
+            name: 'timelog-edit',
+            builder: (context, state) {
+              final id = int.parse(state.pathParameters['id']!);
+              return TimeLogFormScreen(logId: id);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/assets',
